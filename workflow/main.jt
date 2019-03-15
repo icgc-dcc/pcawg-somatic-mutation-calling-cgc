@@ -26,7 +26,7 @@ workflow:
     reference_gz:
       type: string
       is_file: true
-      default: "cgc://5c5afcd4e4b0999ab6d984dd"
+      default: "cgc://5c5afcd4e4b0999ab6d984dd|genome.fa.gz"
     reference_gz_fai:  # do we need this?
       type: string
       is_file: true
@@ -43,15 +43,15 @@ workflow:
     delly.reference-gc:
       type: string
       is_file: true
-      default: "cgc://5c5af25de4b0999ab6d97330"
+      default: "cgc://5c5af25de4b0999ab6d97330|hs37d5_1000GP.gc"
     delly.exclude-reg:
       type: string
       is_file: true
-      default: "cgc://5c5af272e4b0999ab6d9733d"
+      default: "cgc://5c5af272e4b0999ab6d9733d|human.hg19.excl.tsv"
     delly.gencode-gz:
       type: string
       is_file: true
-      default: "cgc://5c5af286e4b0999ab6d97348"
+      default: "cgc://5c5af286e4b0999ab6d97348|gencode_sort.v19.bed.gz"
     dkfz.app:
       type: string
       is_file: true
@@ -66,7 +66,7 @@ workflow:
     dkfz.reference-gz:
       type: string
       is_file: true
-      default: "cgc://5c5af2aae4b0999ab6d97353"
+      default: "cgc://5c5af2aae4b0999ab6d97353|dkfz-workflow-dependencies_150318_0951.tar.gz"
     sanger.app:
       type: stirng
       is_file: true
@@ -81,11 +81,11 @@ workflow:
     sanger.refFrom:
       type: string
       is_file: true
-      default: "cgc://5c48c8b8e4b0999acb057b17"
+      default: "cgc://5c48c8b8e4b0999acb057b17|GRCh37d5_CGP_refBundle.tar.gz"
     sanger.bbFrom:
       type: string
       is_file: true
-      default: "cgc://5c48c879e4b0999acb057b0c"
+      default: "cgc://5c48c879e4b0999acb057b0c|GRCh37d5_battenberg.tar.gz"
 
   tasks:
     delly:
