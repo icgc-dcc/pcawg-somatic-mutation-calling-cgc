@@ -1,0 +1,228 @@
+# Workflow of PCAWG variant calling workflows
+
+workflow:
+  name:  pcawg-somatic-mutation-calling-cgc
+  version: "0.0.1"
+
+  input:
+    cgc_project:
+      type: string
+      is_required: true
+      default: jun-junzhang/pcawg2
+    study:  # ICGC project code, eg, PACA-CA
+      type: string
+      is_required: true
+    donor_id:  # submitter Donor ID
+      type: string
+      is_required: true
+    tumor_bam:
+      type: string
+      is_file: true
+      is_required: true
+    normal_bam:
+      type: string
+      is_file: true
+      is_required: true
+    reference_gz:
+      type: string
+      is_file: true
+      default: "cgc://5c5afcd4e4b0999ab6d984dd"
+    reference_gz_fai:  # do we need this?
+      type: string
+      is_file: true
+      default: ""
+    delly.app:
+      type: string
+      default: "pcawg-delly-caller/3"
+    delly.instance_type:
+      type: string
+      default: "m5.xlarge;ebs-gp2;500"
+    delly.use_spot:
+      type: string
+      default: true
+    delly.reference-gc:
+      type: string
+      is_file: true
+      default: "cgc://5c5af25de4b0999ab6d97330"
+    delly.exclude-reg:
+      type: string
+      is_file: true
+      default: "cgc://5c5af272e4b0999ab6d9733d"
+    delly.gencode-gz:
+      type: string
+      is_file: true
+      default: "cgc://5c5af286e4b0999ab6d97348"
+    dkfz.app:
+      type: string
+      is_file: true
+      default: "pcawg-dkfz-caller/11"
+    dkfz.instance_type:
+      type: string
+      is_file: true
+      default: "m5.4xlarge;ebs-gp2;500"
+    dkfz.use_spot:
+      type: string
+      default: true
+    dkfz.reference-gz:
+      type: string
+      is_file: true
+      default: "cgc://5c5af2aae4b0999ab6d97353"
+    sanger.app:
+      type: stirng
+      is_file: true
+      default: "pcawg-sanger-caller/7"
+    sanger.instance_type:
+      type: string
+      is_file: true
+      default: "c5.9xlarge;ebs-gp2;500"
+    sanger.use_spot:
+      type: string
+      default: true
+    sanger.refFrom:
+      type: string
+      is_file: true
+      default: "cgc://5c48c8b8e4b0999acb057b17"
+    sanger.bbFrom:
+      type: string
+      is_file: true
+      default: "cgc://5c48c879e4b0999acb057b0c"
+
+  tasks:
+    delly:
+      tool: delly_sbg_runner
+      input:
+        cgc_project: cgc_project
+        study: study
+        donor_id: donor_id
+        app: delly.app
+        instance_type: delly.instance_type
+        use_spot: delly.use_spot
+        tumor-bam: tumor_bam
+        normal-bam: normal_bam
+        reference-gz: reference_gz
+        reference-gc: delly.reference-gc
+        exclude-reg: delly.exclude-reg
+        gencode-gz: delly.gencode-gz
+    dkfz:
+      tool: dkfz_sbg_runner
+      input:
+        cgc_project: cgc_project
+        study: study
+        donor_id: donor_id
+        app: dkfz.app
+        instance_type: dkfz.instance_type
+        use_spot: dkfz.use_spot
+        tumor-bam: tumor_bam
+        normal-bam: normal_bam
+        reference-gz: dkfz.reference-gz
+        delly_task_id: task_id@delly
+    sanger:
+      tool: sanger_sbg_runner
+      input:
+        cgc_project: cgc_project
+        study: study
+        donor_id: donor_id
+        app: sanger.app
+        instance_type: sanger.instance_type
+        use_spot: sanger.use_spot
+        tumor: tumor_bam
+        normal: normal_bam
+        refFrom: sanger.refFrom
+        bbFrom: sanger.bbFrom
+
+# A workflow is made up with one or more tools
+# Each tool can have its own docker imagine if desirable
+tools:
+  delly_sbg_runner:
+    command: cgc_task_runner.py
+    input:
+      cgc_project:
+        type: string
+      study:
+        type: string
+      donor_id:
+        type: string
+      app:
+        type: string
+      instance_type:
+        type: string
+      use_spot:
+        type: string
+      tumor-bam:
+        type: string
+        is_file: true
+      normal-bam:
+        type: string
+        is_file: true
+      reference-gz:
+        type: string
+        is_file: true
+      reference-gc:
+        type: string
+        is_file: true
+      gencode-gz:
+        type: string
+        is_file: true
+    output:
+      task_id:
+        type: string
+        is_file: true
+
+  dkfz_sbg_runner:
+    command: cgc_task_runner.py
+    input:
+      cgc_project:
+        type: string
+      study:
+        type: string
+      donor_id:
+        type: string
+      app:
+        type: string
+      instance_type:
+        type: string
+      use_spot:
+        type: string
+      tumor-bam:
+        type: string
+        is_file: true
+      normal-bam:
+        type: string
+        is_file: true
+      reference-gz:
+        type: string
+        is_file: true
+      delly_task_id:
+        type: string
+    output:
+      task_id:
+        type: string
+        is_file: true
+
+  sanger_sbg_runner:
+    command: cgc_task_runner.py
+    input:
+      cgc_project:
+        type: string
+      app:
+        type: string
+      instance_type:
+        type: string
+      use_spot:
+        type: string
+      tumor:
+        type: string
+        is_file: true
+      normal:
+        type: string
+        is_file: true
+      refFrom:
+        type: string
+        is_file: true
+      bbFrom:
+        type: string
+        is_file: true
+    output:
+      task_id:
+        type: string
+        is_file: true
