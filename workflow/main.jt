@@ -1,8 +1,8 @@
 # Workflow of PCAWG variant calling workflows
 
 workflow:
-  name:  pcawg-somatic-mutation-calling-cgc
-  version: "0.0.2"
+  name:  pcawg-variant-calling-cgc
+  version: "0.0.3"
 
   input:
     cgc_project:
