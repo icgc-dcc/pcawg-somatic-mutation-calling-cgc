@@ -2,7 +2,7 @@
 
 workflow:
   name:  pcawg-somatic-mutation-calling-cgc
-  version: "0.0.1"
+  version: "0.0.2"
 
   input:
     cgc_project:
