@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import os
 import sys
 import json
@@ -21,23 +23,62 @@ app_name, app_rev = app.split('/')
 # app specific args
 app_input = {
     'pcawg-delly-caller': {
-        'tumor-bam': inputs.get('tumor-bam', '').replace('', 'cgc://'),
-        'normal-bam': inputs.get('normal-bam', '').replace('', 'cgc://'),
-        'reference-gz': inputs.get('reference-gz', '').replace('', 'cgc://'),
-        'exclude-reg': inputs.get('exclude-reg', '').replace('', 'cgc://'),
-        'gencode-gz': inputs.get('gencode-gz', '').replace('', 'cgc://'),
+        'tumor-bam': {
+            'class': 'File',
+            'path': inputs.get('tumor-bam', '').replace('cgc://', ''),
+        },
+        'normal-bam': {
+            'class': 'File',
+            'path': inputs.get('normal-bam', '').replace('cgc://', ''),
+        },
+        'reference-gz': {
+            'class': 'File',
+            'path': inputs.get('reference-gz', '').replace('cgc://', ''),
+        },
+        'exclude-reg': {
+            'class': 'File',
+            'path': inputs.get('exclude-reg', '').replace('cgc://', ''),
+        },
+        'gencode-gz': {
+            'class': 'File',
+            'path': inputs.get('gencode-gz', '').replace('cgc://', ''),
+        }
     },
     'pcawg-dkfz-caller': {
-        'tumor-bam': inputs.get('tumor-bam', '').replace('', 'cgc://'),
-        'normal-bam': inputs.get('normal-bam', '').replace('', 'cgc://'),
-        'reference-gz': inputs.get('reference-gz', '').replace('', 'cgc://'),
-        'delly_task_id': inputs.get('delly_task_id', '').replace('', 'cgc://'),
+        'tumor-bam': {
+            'class': 'File',
+            'path': inputs.get('tumor-bam', '').replace('cgc://', ''),
+        },
+        'normal-bam': {
+            'class': 'File',
+            'path': inputs.get('normal-bam', '').replace('cgc://', ''),
+        },
+        'reference-gz': {
+            'class': 'File',
+            'path': inputs.get('reference-gz', '').replace('cgc://', ''),
+        },
+        'delly_task_id': {
+            'class': 'File',
+            'path': inputs.get('delly_task_id', '').replace('cgc://', ''),
+        }
     },
     'pcawg-sanger-caller': {
-        'tumor': inputs.get('tumor', '').replace('', 'cgc://'),
-        'normal': inputs.get('normal', '').replace('', 'cgc://'),
-        'refFrom': inputs.get('refFrom', '').replace('', 'cgc://'),
-        'bbFrom': inputs.get('bbFrom', '').replace('', 'cgc://'),
+        'tumor': {
+            'class': 'File',
+            'path': inputs.get('tumor', '').replace('cgc://', ''),
+        },
+        'normal': {
+            'class': 'File',
+            'path': inputs.get('normal', '').replace('cgc://', ''),
+        },
+        'refFrom': {
+            'class': 'File',
+            'path': inputs.get('refFrom', '').replace('cgc://', ''),
+        },
+        'bbFrom': {
+            'class': 'File',
+            'path': inputs.get('bbFrom', '').replace('cgc://', ''),
+        }
     }
 }
 
@@ -58,7 +99,7 @@ sbg_task = {
             'instance_type': instance_type
         },
         'use_interruptible_instances': use_spot,
-        'inputs': app_input['app_name']
+        'inputs': app_input[app_name]
     }
 }
 
@@ -76,6 +117,7 @@ command = 'docker run --rm ' \
           'quay.io/pancancer/syncr:0.0.2 ' \
           'sbg_task'
 
+success = True
 stdout, stderr = '', ''
 try:
     p = subprocess.Popen([command],
@@ -84,7 +126,18 @@ try:
                          shell=True)
     stdout, stderr = p.communicate()
 except Exception as e:
-    exit(stderr)
+    success = False
+
+if p.returncode != 0:
+    success = False
+
+with open('stdout.txt', 'a') as o:
+    o.write(stdout.decode("utf-8"))
+with open('stderr.txt', 'a') as e:
+    e.write(stderr.decode("utf-8"))
+
+if not success:
+    exit(1)
 
 # upon completion, collect task id
 with open('_task_info') as t:
