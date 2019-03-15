@@ -5,10 +5,14 @@ import sys
 import json
 import yaml
 import subprocess
+import sevenbridges as sbg
 
 task_dict = json.loads(sys.argv[1])
 inputs = task_dict['input']
 cwd = os.getcwd()
+
+os.environ['SB_AUTH_TOKEN'] = os.environ['CGC_ACCESS_TOKEN']
+os.environ['SB_API_ENDPOINT'] = 'https://cgc-api.sbgenomics.com/v2'
 
 # common input args for all PCAWG cgc apps (varinat callers/tools)
 cgc_project = inputs['cgc_project']
@@ -20,69 +24,90 @@ use_spot = inputs['use_spot']
 
 app_name, app_rev = app.split('/')
 
+# TODO: for pcawg-dkfz-caller we need to do a bit extra work to get the 'somatic_bedpe' output file from DELLY step
+delly_bedpe = {}
+if app_name == 'pcawg-dkfz-caller':
+    delly_task_id = inputs['delly_task_id']
+    api = sbg.Api()
+    files = api.files.query(parent='5c33664de4b08832b6dc57f2', origin={'task': delly_task_id})
+    bedpe_file = [(f.id, f.name) for f in files if f.name.endswith('.somatic.sv.bedpe.txt')][0]
+    delly_bedpe['path'] = bedpe_file[0]
+    delly_bedpe['name'] = bedpe_file[1]
+
 # app specific args
 app_input = {
     'pcawg-delly-caller': {
         'tumor-bam': {
             'class': 'File',
-            'path': inputs.get('tumor-bam', '').replace('cgc://', ''),
+            'path': inputs.get('tumor-bam', '').split('|')[0].replace('cgc://', ''),
+            'name': inputs.get('tumor-bam', '').split('|')[-1],
         },
         'normal-bam': {
             'class': 'File',
-            'path': inputs.get('normal-bam', '').replace('cgc://', ''),
+            'path': inputs.get('normal-bam', '').split('|')[0].replace('cgc://', ''),
+            'name': inputs.get('normal-bam', '').split('|')[-1],
         },
         'reference-gz': {
             'class': 'File',
-            'path': inputs.get('reference-gz', '').replace('cgc://', ''),
+            'path': inputs.get('reference-gz', '').split('|')[0].replace('cgc://', ''),
+            'name': inputs.get('reference-gz', '').split('|')[-1],
         },
         'exclude-reg': {
             'class': 'File',
-            'path': inputs.get('exclude-reg', '').replace('cgc://', ''),
+            'path': inputs.get('exclude-reg', '').split('|')[0].replace('cgc://', ''),
+            'name': inputs.get('exclude-reg', '').split('|')[-1],
         },
         'gencode-gz': {
             'class': 'File',
-            'path': inputs.get('gencode-gz', '').replace('cgc://', ''),
+            'path': inputs.get('gencode-gz', '').split('|')[0].replace('cgc://', ''),
+            'name': inputs.get('gencode-gz', '').split('|')[-1],
         }
     },
     'pcawg-dkfz-caller': {
         'tumor-bam': {
             'class': 'File',
-            'path': inputs.get('tumor-bam', '').replace('cgc://', ''),
+            'path': inputs.get('tumor-bam', '').split('|')[0].replace('cgc://', ''),
+            'name': inputs.get('tumor-bam', '').split('|')[-1],
         },
         'normal-bam': {
             'class': 'File',
-            'path': inputs.get('normal-bam', '').replace('cgc://', ''),
+            'path': inputs.get('normal-bam', '').split('|')[0].replace('cgc://', ''),
+            'name': inputs.get('normal-bam', '').split('|')[-1],
         },
         'reference-gz': {
             'class': 'File',
-            'path': inputs.get('reference-gz', '').replace('cgc://', ''),
+            'path': inputs.get('reference-gz', '').split('|')[0].replace('cgc://', ''),
+            'name': inputs.get('reference-gz', '').split('|')[-1],
         },
-        'delly_task_id': {
+        'delly-bedpe': {
             'class': 'File',
-            'path': inputs.get('delly_task_id', '').replace('cgc://', ''),
-        }
+            'path': delly_bedpe.get('path', ''),
+            'name': delly_bedpe.get('name', ''),
+        },
     },
     'pcawg-sanger-caller': {
         'tumor': {
             'class': 'File',
-            'path': inputs.get('tumor', '').replace('cgc://', ''),
+            'path': inputs.get('tumor', '').split('|')[0].replace('cgc://', ''),
+            'name': inputs.get('tumor', '').split('|')[-1],
         },
         'normal': {
             'class': 'File',
-            'path': inputs.get('normal', '').replace('cgc://', ''),
+            'path': inputs.get('normal', '').split('|')[0].replace('cgc://', ''),
+            'name': inputs.get('normal', '').split('|')[-1],
         },
         'refFrom': {
             'class': 'File',
-            'path': inputs.get('refFrom', '').replace('cgc://', ''),
+            'path': inputs.get('refFrom', '').split('|')[0].replace('cgc://', ''),
+            'name': inputs.get('refFrom', '').split('|')[-1],
         },
         'bbFrom': {
             'class': 'File',
-            'path': inputs.get('bbFrom', '').replace('cgc://', ''),
+            'path': inputs.get('bbFrom', '').split('|')[0].replace('cgc://', ''),
+            'name': inputs.get('bbFrom', '').split('|')[-1],
         }
     }
 }
-
-# TODO: for pcawg-dkfz-caller we need to do a bit extra work to get the 'somatic_bedpe' output file from DELLY step
 
 # prepare syncr sbg task file
 sbg_task = {
@@ -106,9 +131,6 @@ sbg_task = {
 # write sbg task config to an YAML
 with open('task.yaml', 'w') as t:
     yaml.safe_dump(sbg_task, t, default_flow_style=False)
-
-# now launch the sbg task
-os.environ['SB_AUTH_TOKEN'] = os.environ['CGC_ACCESS_TOKEN']
 
 command = 'docker run --rm ' \
           '-e SB_AUTH_TOKEN ' \
