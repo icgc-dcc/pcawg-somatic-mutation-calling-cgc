@@ -23,13 +23,12 @@ instance_type = inputs['instance_type']
 use_spot = inputs['use_spot']
 
 app_name, app_rev = app.split('/')
+api = sbg.Api()
 
-# TODO: for pcawg-dkfz-caller we need to do a bit extra work to get the 'somatic_bedpe' output file from DELLY step
 delly_bedpe = {}
 if app_name == 'pcawg-dkfz-caller':
     delly_task_id = inputs['delly_task_id']
-    api = sbg.Api()
-    files = api.files.query(parent='5c33664de4b08832b6dc57f2', origin={'task': delly_task_id})
+    files = api.files.query(project=cgc_project, origin={'task': delly_task_id})
     bedpe_file = [(f.id, f.name) for f in files if f.name.endswith('.somatic.sv.bedpe.txt')][0]
     delly_bedpe['path'] = bedpe_file[0]
     delly_bedpe['name'] = bedpe_file[1]
@@ -108,7 +107,7 @@ app_input = {
 
 # prepare syncr sbg task file
 sbg_task = {
-    'probing_interval': 300,
+    'probing_interval': 300,  # probing task status every 5 min on CGC
     'meta': [
         {'study': study},
         {'donor_id': donor_id},
@@ -154,13 +153,30 @@ if p and p.returncode != 0:
 print(stdout.decode("utf-8"))
 print(stderr.decode("utf-8"), file=sys.stderr)
 
-if not success:
-    exit(p.returncode if p.returncode else 1)
-
-# upon completion, collect task id
-with open('_task_info') as t:
-    task_info = yaml.safe_load(t)
+# collect cgc task id
+task_info = {}
+try:  # _task_info file may not exist
+    with open('_task_info') as t:
+        task_info = yaml.safe_load(t)
+except FileNotFoundError:
+    success = False
 
 # write to output.json
+output = {
+    'cgc_task_id': task_info.get('id'),
+    'cgc_task_outputs': []
+}
+
+if output['cgc_task_id']:
+    cgc_task_outputs = api.files.query(
+        project=cgc_project,
+        origin={'task': output['cgc_task_id']})
+    output['cgc_task_outputs'] = [
+        {f.id: f.name} for f in cgc_task_outputs
+    ]
+
 with open('output.json', 'w') as j:
-    j.write(json.dumps({'cgc_task_id': task_info['id']}))
+    j.write(json.dumps(output))
+
+if not success:
+    exit(p.returncode if p.returncode else 1)
