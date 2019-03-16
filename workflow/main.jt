@@ -2,7 +2,7 @@
 
 workflow:
   name:  pcawg-variant-calling-cgc
-  version: "0.0.5"
+  version: "0.0.6"
 
   input:
     cgc_project:
@@ -105,7 +105,7 @@ workflow:
         tumor-bam: tumor_bam
         normal-bam: normal_bam
         reference-gz: dkfz.reference-gz
-        delly_task_id: task_id@delly
+        delly_task_id: cgc_task_id@delly
     sanger:
       tool: sanger_sbg_runner
       input:
@@ -154,7 +154,7 @@ tools:
         type: string
         is_file: true
     output:
-      task_id:
+      cgc_task_id:
         type: string
         is_file: true
 
@@ -185,7 +185,7 @@ tools:
       delly_task_id:
         type: string
     output:
-      task_id:
+      cgc_task_id:
         type: string
         is_file: true
 
@@ -213,6 +213,6 @@ tools:
         type: string
         is_file: true
     output:
-      task_id:
+      cgc_task_id:
         type: string
         is_file: true

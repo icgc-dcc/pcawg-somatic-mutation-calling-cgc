@@ -137,8 +137,7 @@ command = 'docker run --rm ' \
           'quay.io/pancancer/syncr:0.0.2 ' \
           'sbg_task'
 
-success = True
-stdout, stderr = '', ''
+stdout, stderr, p, success = '', '', None, True
 try:
     p = subprocess.Popen([command],
                          stdout=subprocess.PIPE,
@@ -146,18 +145,17 @@ try:
                          shell=True)
     stdout, stderr = p.communicate()
 except Exception as e:
+    print(e, file=sys.stderr)
     success = False
 
-if p.returncode != 0:
+if p and p.returncode != 0:
     success = False
 
-with open('stdout.txt', 'a') as o:
-    o.write(stdout.decode("utf-8"))
-with open('stderr.txt', 'a') as e:
-    e.write(stderr.decode("utf-8"))
+print(stdout.decode("utf-8"))
+print(stderr.decode("utf-8"), file=sys.stderr)
 
 if not success:
-    exit(1)
+    exit(p.returncode if p.returncode else 1)
 
 # upon completion, collect task id
 with open('_task_info') as t:
@@ -165,6 +163,4 @@ with open('_task_info') as t:
 
 # write to output.json
 with open('output.json') as j:
-    json.dumps({
-        'task_id': task_info['id']
-    })
+    j.write(json.dumps({'cgc_task_id': task_info['id']}))
