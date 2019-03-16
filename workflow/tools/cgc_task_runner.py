@@ -162,5 +162,5 @@ with open('_task_info') as t:
     task_info = yaml.safe_load(t)
 
 # write to output.json
-with open('output.json') as j:
+with open('output.json', 'w') as j:
     j.write(json.dumps({'cgc_task_id': task_info['id']}))
