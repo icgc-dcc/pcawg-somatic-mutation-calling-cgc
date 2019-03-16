@@ -37,6 +37,7 @@ if app_name == 'pcawg-dkfz-caller':
 # app specific args
 app_input = {
     'pcawg-delly-caller': {
+        'run-id': donor_id,
         'tumor-bam': {
             'class': 'File',
             'path': inputs.get('tumor-bam', '').split('|')[0].replace('cgc://', ''),
@@ -52,18 +53,14 @@ app_input = {
             'path': inputs.get('reference-gz', '').split('|')[0].replace('cgc://', ''),
             'name': inputs.get('reference-gz', '').split('|')[-1],
         },
-        'exclude-reg': {
+        'reference-gc': {
             'class': 'File',
-            'path': inputs.get('exclude-reg', '').split('|')[0].replace('cgc://', ''),
-            'name': inputs.get('exclude-reg', '').split('|')[-1],
+            'path': inputs.get('reference-gc', '').split('|')[0].replace('cgc://', ''),
+            'name': inputs.get('reference-gc', '').split('|')[-1],
         },
-        'gencode-gz': {
-            'class': 'File',
-            'path': inputs.get('gencode-gz', '').split('|')[0].replace('cgc://', ''),
-            'name': inputs.get('gencode-gz', '').split('|')[-1],
-        }
     },
     'pcawg-dkfz-caller': {
+        'run-id': donor_id,
         'tumor-bam': {
             'class': 'File',
             'path': inputs.get('tumor-bam', '').split('|')[0].replace('cgc://', ''),
@@ -111,6 +108,7 @@ app_input = {
 
 # prepare syncr sbg task file
 sbg_task = {
+    'probing_interval': 300,
     'meta': [
         {'study': study},
         {'donor_id': donor_id},

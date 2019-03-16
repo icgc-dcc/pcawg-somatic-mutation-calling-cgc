@@ -44,14 +44,6 @@ workflow:
       type: string
       is_file: true
       default: "cgc://5c5af25de4b0999ab6d97330|hs37d5_1000GP.gc"
-    delly.exclude-reg:
-      type: string
-      is_file: true
-      default: "cgc://5c5af272e4b0999ab6d9733d|human.hg19.excl.tsv"
-    delly.gencode-gz:
-      type: string
-      is_file: true
-      default: "cgc://5c5af286e4b0999ab6d97348|gencode_sort.v19.bed.gz"
     dkfz.app:
       type: string
       is_file: true
@@ -101,8 +93,6 @@ workflow:
         normal-bam: normal_bam
         reference-gz: reference_gz
         reference-gc: delly.reference-gc
-        exclude-reg: delly.exclude-reg
-        gencode-gz: delly.gencode-gz
     dkfz:
       tool: dkfz_sbg_runner
       input:
