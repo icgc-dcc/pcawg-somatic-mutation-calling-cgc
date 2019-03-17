@@ -4,6 +4,7 @@ import os
 import sys
 import json
 import yaml
+import hashlib
 import subprocess
 import sevenbridges as sbg
 
@@ -25,6 +26,18 @@ use_spot = inputs['use_spot']
 app_name, app_rev = app.split('/')
 api = sbg.Api()
 
+
+def get_input_md5(cgc_input):
+    filtered_input_dict = {
+        k: cgc_input[k] for k in cgc_input if isinstance(cgc_input[k], dict) and \
+                                              cgc_input[k].get('class') == 'File' and \
+                                              cgc_input[k].pop('name', 1)
+    }
+
+    return hashlib.md5(json.dumps(filtered_input_dict, sort_keys=True).encode('utf-8'))
+
+
+# get one of the delly's output files as dkfz's input
 delly_bedpe = {}
 if app_name == 'pcawg-dkfz-caller':
     delly_task_id = inputs['delly_task_id']
@@ -105,6 +118,8 @@ app_input = {
     }
 }
 
+input_hash = get_input_md5(app_input[app_name])
+
 # prepare syncr sbg task file
 sbg_task = {
     'probing_interval': 300,  # probing task status every 5 min on CGC
@@ -112,7 +127,8 @@ sbg_task = {
         {'study': study},
         {'donor_id': donor_id},
         {'app_name': app_name},
-        {'app_rev': app_rev}
+        {'app_rev': app_rev},
+        {'input_hash': input_hash}
     ],
     'task': {
         'project': cgc_project,
@@ -164,16 +180,27 @@ except FileNotFoundError:
 # write to output.json
 output = {
     'cgc_task_id': task_info.get('id'),
-    'cgc_task_outputs': []
+    'cgc_task_outputs': [],
+    'cgc_task_details': {}
 }
 
 if output['cgc_task_id']:
     cgc_task_outputs = api.files.query(
         project=cgc_project,
         origin={'task': output['cgc_task_id']})
-    output['cgc_task_outputs'] = [
-        {f.id: f.name} for f in cgc_task_outputs
-    ]
+    output['cgc_task_outputs'] = [{f.id: f.name} for f in cgc_task_outputs]
+
+    try:
+        cgc_task = api.tasks.get(output['cgc_task_id'])
+        output['cgc_task_details'] = {
+            'start_time': str(cgc_task.start_time),
+            'executed_by': cgc_task.executed_by,
+            'instance_type': cgc_task.execution_settings['instance_type'],
+            'execution_duration': cgc_task.execution_status.execution_duration,
+            'price': cgc_task.price.amount,
+        }
+    except:  # in case this fails just don't collect
+        pass
 
 with open('output.json', 'w') as j:
     j.write(json.dumps(output))
