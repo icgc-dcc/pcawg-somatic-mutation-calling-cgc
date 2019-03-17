@@ -5,6 +5,7 @@ import sys
 import json
 import yaml
 import hashlib
+import copy
 import subprocess
 import sevenbridges as sbg
 
@@ -28,10 +29,11 @@ api = sbg.Api()
 
 
 def get_input_md5(cgc_input):
+    my_input = copy.deepcopy(cgc_input)
     filtered_input_dict = {
-        k: cgc_input[k] for k in cgc_input if isinstance(cgc_input[k], dict) and \
-                                              cgc_input[k].get('class') == 'File' and \
-                                              cgc_input[k].pop('name', 1)
+        k: my_input[k] for k in my_input if isinstance(my_input[k], dict) and \
+                                            my_input[k].get('class') == 'File' and \
+                                            my_input[k].pop('name', 1)
     }
 
     return hashlib.md5(json.dumps(filtered_input_dict,
