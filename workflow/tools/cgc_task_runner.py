@@ -34,7 +34,8 @@ def get_input_md5(cgc_input):
                                               cgc_input[k].pop('name', 1)
     }
 
-    return hashlib.md5(json.dumps(filtered_input_dict, sort_keys=True).encode('utf-8'))
+    return hashlib.md5(json.dumps(filtered_input_dict,
+                                  sort_keys=True).encode('utf-8')).hexdigest()
 
 
 # get one of the delly's output files as dkfz's input

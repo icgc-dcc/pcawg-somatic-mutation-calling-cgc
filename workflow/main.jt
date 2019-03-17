@@ -2,7 +2,7 @@
 
 workflow:
   name:  pcawg-variant-calling-cgc
-  version: "0.0.8"
+  version: "0.0.9"
 
   input:
     cgc_project:
