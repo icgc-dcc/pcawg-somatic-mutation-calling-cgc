@@ -199,6 +199,7 @@ if output['cgc_task_id']:
             'instance_type': cgc_task.execution_settings['instance_type'],
             'execution_duration': cgc_task.execution_status.execution_duration,
             'price': cgc_task.price.amount,
+            'spot_instance': cgc_task.use_interruptible_instances,
         }
     except:  # in case this fails just don't collect
         pass
