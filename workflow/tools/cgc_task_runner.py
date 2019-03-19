@@ -188,23 +188,26 @@ output = {
 }
 
 if output['cgc_task_id']:
-    cgc_task_outputs = api.files.query(
-        project=cgc_project,
-        origin={'task': output['cgc_task_id']})
-    output['cgc_task_outputs'] = [{f.id: f.name} for f in cgc_task_outputs]
+    cgc_task = api.tasks.get(output['cgc_task_id'])
 
-    try:
-        cgc_task = api.tasks.get(output['cgc_task_id'])
-        output['cgc_task_details'] = {
-            'start_time': str(cgc_task.start_time),
-            'executed_by': cgc_task.executed_by,
-            'instance_type': cgc_task.execution_settings['instance_type'],
-            'execution_duration': cgc_task.execution_status.execution_duration,
-            'price': cgc_task.price.amount,
-            'spot_instance': cgc_task.use_interruptible_instances,
+    out_dict = dict(cgc_task.outputs)
+    for o in out_dict:
+        if out_dict[o].get('class') != 'File':
+            continue
+        output['cgc_task_outputs'][o] = {
+            'name': out_dict[o]['name'],
+            'path': out_dict[o]['path'],
+            'size': out_dict[o]['size'],
         }
-    except:  # in case this fails just don't collect
-        pass
+
+    output['cgc_task_details'] = {
+        'start_time': str(cgc_task.start_time),
+        'executed_by': cgc_task.executed_by,
+        'instance_type': cgc_task.execution_settings['instance_type'],
+        'execution_duration': cgc_task.execution_status.execution_duration,
+        'price': cgc_task.price.amount,
+        'spot_instance': cgc_task.use_interruptible_instances,
+    }
 
 with open('output.json', 'w') as j:
     j.write(json.dumps(output))
