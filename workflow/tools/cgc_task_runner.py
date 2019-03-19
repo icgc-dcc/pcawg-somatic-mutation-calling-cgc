@@ -195,10 +195,10 @@ if output['cgc_task_id']:
         if not isinstance(out_dict[o], dict) or out_dict[o].get('class') != 'File':
             continue
         output['cgc_task_outputs'][o] = {
-            'name': out_dict[o]['name'],
-            'path': out_dict[o]['path'],
-            'size': out_dict[o]['size'],
-            'checksum': out_dict[o]['checksum'],
+            'name': out_dict[o].get('name'),
+            'path': out_dict[o].get('path'),
+            'size': out_dict[o].get('size'),
+            'checksum': out_dict[o].get('checksum'),
         }
 
     output['cgc_task_details'] = {
