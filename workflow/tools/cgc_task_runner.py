@@ -192,12 +192,13 @@ if output['cgc_task_id']:
 
     out_dict = dict(cgc_task.outputs)
     for o in out_dict:
-        if isinstance(out_dict[o], dict) and out_dict[o].get('class') != 'File':
+        if not isinstance(out_dict[o], dict) or out_dict[o].get('class') != 'File':
             continue
         output['cgc_task_outputs'][o] = {
             'name': out_dict[o]['name'],
             'path': out_dict[o]['path'],
             'size': out_dict[o]['size'],
+            'checksum': out_dict[o]['checksum'],
         }
 
     output['cgc_task_details'] = {
@@ -205,6 +206,7 @@ if output['cgc_task_id']:
         'executed_by': cgc_task.executed_by,
         'instance_type': cgc_task.execution_settings['instance_type'],
         'execution_duration': cgc_task.execution_status.execution_duration,
+        'status': cgc_task.status,
         'price': cgc_task.price.amount,
         'spot_instance': cgc_task.use_interruptible_instances,
     }
