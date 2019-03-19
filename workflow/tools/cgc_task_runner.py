@@ -204,10 +204,10 @@ if output['cgc_task_id']:
     output['cgc_task_details'] = {
         'start_time': str(cgc_task.start_time),
         'executed_by': cgc_task.executed_by,
-        'instance_type': cgc_task.execution_settings['instance_type'],
+        'instance_type': cgc_task.execution_settings.get('instance_type'),
         'execution_duration': cgc_task.execution_status.execution_duration,
         'status': cgc_task.status,
-        'price': cgc_task.price.amount,
+        'price': cgc_task.price.amount if cgc_task.price else 0,
         'spot_instance': cgc_task.use_interruptible_instances,
     }
 
