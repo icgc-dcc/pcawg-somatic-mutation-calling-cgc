@@ -183,7 +183,7 @@ except FileNotFoundError:
 # write to output.json
 output = {
     'cgc_task_id': task_info.get('id'),
-    'cgc_task_outputs': [],
+    'cgc_task_outputs': {},
     'cgc_task_details': {}
 }
 
@@ -192,7 +192,7 @@ if output['cgc_task_id']:
 
     out_dict = dict(cgc_task.outputs)
     for o in out_dict:
-        if out_dict[o].get('class') != 'File':
+        if isinstance(out_dict[o], dict) and out_dict[o].get('class') != 'File':
             continue
         output['cgc_task_outputs'][o] = {
             'name': out_dict[o]['name'],
