@@ -78,9 +78,6 @@ workflow:
       type: string
       is_file: true
       default: "cgc://5c48c879e4b0999acb057b0c|GRCh37d5_battenberg.tar.gz"
-    download_sbg_dckr:
-      type: string
-      default: #TBD
 
   tasks:
     delly:
@@ -125,25 +122,15 @@ workflow:
     download_delly_result:
       tool: download_from_sbg
       input:
-        download_sbg_dckr: download_sbg_dckr
-        output_dir: #TBD
-        file_id: cgc_task_id@delly
-        filename: #TBD
+        cgc_task_outputs: cgc_task_outputs@delly
     download_dkfz_result:
       tool: download_from_sbg
       input:
-        download_sbg_dckr: download_sbg_dckr
-        output_dir: #TBD
-        file_id: cgc_task_id@dkfz
-        filename: #TBD
+        cgc_task_outputs: cgc_task_outputs@dkfz
     download_sanger_result:
       tool: download_from_sbg
       input:
-        download_sbg_dckr: download_sbg_dckr
-        output_dir: #TBD
-        file_id: cgc_task_id@sanger
-        filename: #TBD
-
+        cgc_task_outputs: cgc_task_outputs@sanger
 
 # A workflow is made up with one or more tools
 # Each tool can have its own docker imagine if desirable
@@ -243,27 +230,10 @@ tools:
         is_file: true
 
   download_from_sbg:
-    command: |
-      docker pull ${download_sbg_dckr} \
-      && docker run \
-          -v ${output_dir}:/data \
-          -e SB_API_ENDPOINT \
-          -e SB_AUTH_TOKEN \
-          ${download_sbg_dckr} \
-          --id ${file_id} \
-          --output-dir /data
-      && echo "{ \"output_file\": \"${output_dir}/$(basename "${filename}")\" }"
+    command: cgc_download.py
     input:
-      download_sbg_dckr:
-        type: string
-      output_dir:
-        type: string
-      file_id:
-        type: string
-      filename:
+      cgc_task_outputs:
         type: string
     output:
-      output_file:
+      output_dir:
         type: string
-        is_file: true
-
