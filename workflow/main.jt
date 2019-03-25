@@ -119,6 +119,18 @@ workflow:
         normal: normal_bam
         refFrom: sanger.refFrom
         bbFrom: sanger.bbFrom
+    download_delly_result:
+      tool: download_from_sbg
+      input:
+        cgc_task_outputs: cgc_task_outputs@delly
+    download_dkfz_result:
+      tool: download_from_sbg
+      input:
+        cgc_task_outputs: cgc_task_outputs@dkfz
+    download_sanger_result:
+      tool: download_from_sbg
+      input:
+        cgc_task_outputs: cgc_task_outputs@sanger
 
 # A workflow is made up with one or more tools
 # Each tool can have its own docker imagine if desirable
@@ -216,3 +228,12 @@ tools:
       cgc_task_id:
         type: string
         is_file: true
+
+  download_from_sbg:
+    command: cgc_download.py
+    input:
+      cgc_task_outputs:
+        type: string
+    output:
+      output_dir:
+        type: string
